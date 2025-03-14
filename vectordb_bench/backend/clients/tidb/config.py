@@ -36,10 +36,7 @@ class TiDBIndexConfig(BaseModel, DBCaseConfig):
     def parse_metric(self) -> str:
         if self.metric_type == MetricType.L2:
             return "Euclid"
-
-        if self.metric_type == MetricType.IP:
-            return "Dot"
-
+        
         return "Cosine"
 
     def index_param(self) -> dict:

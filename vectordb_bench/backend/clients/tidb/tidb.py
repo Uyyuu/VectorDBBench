@@ -1,4 +1,5 @@
 import json
+import uuid
 import logging
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -31,7 +32,8 @@ class TiDB(VectorDB):
         self.table_name = collection_name
         self.dim = dim
         self._index_name = "tidb_vector_index"
-        self._primary_field = "id"
+        self._primary_field = "uuid"
+        self._id_field = "id" 
         self._vector_field = "embedding"
 
         # Create connection
@@ -50,9 +52,9 @@ class TiDB(VectorDB):
         self.conn = None
 
     @staticmethod
-    def _create_connection(**kwargs) -> tuple[MySQLConnection, MySQLCursor]:
-        conn = mysql.connector.connect(**kwargs)
-        cursor = conn.cursor()
+    def _create_connection(autocommit: bool = False, **kwargs) -> tuple[MySQLConnection, MySQLCursor]:
+        conn = mysql.connector.connect(autocommit=autocommit, **kwargs)
+        cursor = conn.cursor(prepared=True)
 
         return conn, cursor
 
@@ -65,8 +67,9 @@ class TiDB(VectorDB):
     def _create_table(self):
         create_table_sql = f"""
         CREATE TABLE IF NOT EXISTS `{self.table_name}` (
-            `{self._primary_field}` INT PRIMARY KEY,
-            `{self._vector_field}` VECTOR({self.dim})
+            `{self._primary_field}` BINARY(16) PRIMARY KEY,
+            `{self._id_field}` INT NOT NULL,
+            `{self._vector_field}` VECTOR({self.dim}) NOT NULL
         );
         """
         self.cursor.execute(create_table_sql)
@@ -74,14 +77,18 @@ class TiDB(VectorDB):
         log.info(f"Table `{self.table_name}` created with dimension {self.dim}.")
 
     def _create_index(self):
-        create_index_sql = f"""
-        CREATE INDEX `{self._index_name}` ON `{self.table_name}` USING HNSW (`{self._vector_field}`) ALGORITHM HNSW;
-        """
-        self.cursor.execute(create_index_sql)
+        assert self.conn is not None, "Connection is not initialized"
+        assert self.cursor is not None, "Cursor is not initialized"
+
+        self.cursor.execute(f"ALTER TABLE `{self.table_name}` SET TIFLASH REPLICA 1;")
+        self.cursor.execute(f"CREATE VECTOR INDEX `{self._index_name}` ON `{self.table_name}` ((VEC_COSINE_DISTANCE({self._vector_field}))) USING HNSW;")
         self.conn.commit()
         log.info(f"Index `{self._index_name}` created on `{self._vector_field}`.")
 
     def _drop_index(self):
+        assert self.conn is not None, "Connection is not initialized"
+        assert self.cursor is not None, "Cursor is not initialized"
+
         drop_index_sql = f"DROP INDEX IF EXISTS `{self._index_name}` ON `{self.table_name}`"
         self.cursor.execute(drop_index_sql)
         self.conn.commit()
@@ -114,17 +121,28 @@ class TiDB(VectorDB):
         assert self.conn is not None, "Connection is not initialized"
         assert self.cursor is not None, "Cursor is not initialized"
 
+        values_placeholders = [] 
+        data_tuple_list = []    
+
+        for m, e in zip(metadata, embeddings, strict=False):
+            values_placeholders.append("(%s, %s, %s)") 
+            # Convert UUID to binary for performance reasons
+            m_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(m))
+            data_tuple_list.append(m_uuid.bytes)
+            data_tuple_list.append(m)            
+            data_tuple_list.append(json.dumps(e))   
+
+        values_clause = ",\n    ".join(values_placeholders) 
+
         insert_sql = f"""
-        INSERT INTO `{self.table_name}` (`{self._primary_field}`, `{self._vector_field}`)
-        VALUES (%s, %s)
+        INSERT INTO `{self.table_name}` (`{self._primary_field}`, `{self._id_field}`, `{self._vector_field}`)
+        VALUES
+            {values_clause}
         """
 
-        insert_datas: list[tuple] = []
-        for m, e in zip(metadata, embeddings, strict=False):
-            insert_datas.append((m, json.dumps(e)))
         try:
-            # self.cursor.executemany(insert_sql, [(m, e) for m, e in zip(metadata, embeddings, strict=False)])
-            self.cursor.executemany(insert_sql, insert_datas)
+            # use cursor.execute() NOT cursor.executemany()
+            self.cursor.execute(insert_sql, tuple(data_tuple_list))
             self.conn.commit()
 
             return len(metadata), None
@@ -144,17 +162,16 @@ class TiDB(VectorDB):
         assert self.conn is not None, "Connection is not initialized"
         assert self.cursor is not None, "Cursor is not initialized"
 
-        # エンベディングベクトルをJSON形式の文字列に変換
+        # row embedding can not use in SQL query
         query_vector = json.dumps(query)
 
-        # パラメータ化クエリを使用
         search_sql = f"""
         SELECT id, vec_cosine_distance({self._vector_field}, %s) AS distance
         FROM `{self.table_name}`
         ORDER BY distance
         LIMIT %s;
         """
-        # パラメータをクエリに渡す
+
         self.cursor.execute(search_sql, (query_vector, k))
         results = self.cursor.fetchall()
 
@@ -162,4 +179,13 @@ class TiDB(VectorDB):
 
     #  TODO: Implement this method
     def optimize(self, data_size: int | None = None):
-        pass
+        log.info(f"{self.name} post insert before optimize")
+        self._drop_index()
+        self._create_index()
+
+        # Warm up
+        analyze_sql = f"ANALYZE TABLE `{self.table_name}`"
+        self.cursor.execute(analyze_sql)
+        self.conn.commit()
+
+        log.info(f"{self.name} post insert after optimize")
