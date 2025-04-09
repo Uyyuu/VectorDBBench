@@ -1,4 +1,6 @@
 import concurrent.futures
+import json
+import uuid
 import io
 import logging
 import time
@@ -71,7 +73,8 @@ class TiDB(VectorDB):
                 cursor.execute(
                     f"""
                     CREATE TABLE {self.table_name} (
-                        id BIGINT PRIMARY KEY,
+                        uuid BINARY(16) PRIMARY KEY,
+                        id BIGINT NOT NULL,
                         embedding VECTOR({self.dim}) NOT NULL,
                         VECTOR INDEX (({index_param["metric_fn"]}(embedding)))
                     );
@@ -167,24 +170,54 @@ class TiDB(VectorDB):
         except Exception as e:
             log.warning("Failed to read TiFlash index pending rows: %s", e)
             raise e
+        
+    def bulk_insert_embeddings(
+        self,
+        embeddings: list[list[float]],
+        metadata: list[int],
+        **kwargs,
+    ) -> Exception:
+        assert self.conn is not None, "Connection is not initialized"
+        assert self.cursor is not None, "Cursor is not initialized"
+
+        values_placeholders = [] 
+        data_tuple_list = []    
+
+        for m, e in zip(metadata, embeddings, strict=False):
+            values_placeholders.append("(%s, %s, %s)") 
+            # Convert UUID to binary for performance reasons
+            m_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, str(m))
+            data_tuple_list.append(m_uuid.bytes)
+            data_tuple_list.append(m)            
+            data_tuple_list.append(json.dumps(e))   
+
+        values_clause = ",\n    ".join(values_placeholders) 
+
+        insert_sql = f"""
+        INSERT INTO `{self.table_name}` (uuid, id, embedding)
+        VALUES
+            {values_clause}
+        """
+
+        try:
+            # use cursor.execute() NOT cursor.executemany()
+            with self._get_connection() as (conn, cursor):
+                cursor.execute(insert_sql, tuple(data_tuple_list))
+                conn.commit()
+
+        except Exception as e:
+            log.warning(f"Failed to insert embeddings: {e}")
+            self.conn.rollback()
+
+            raise e
 
     def _insert_embeddings_serial(
         self,
         embeddings: list[list[float]],
         metadata: list[int],
-        offset: int,
-        size: int,
     ) -> Exception:
         try:
-            with self._get_connection() as (conn, cursor):
-                buf = io.StringIO()
-                buf.write(f"INSERT INTO {self.table_name} (id, embedding) VALUES ")
-                for i in range(offset, offset + size):
-                    if i > offset:
-                        buf.write(",")
-                    buf.write(f'({metadata[i]}, "{str(embeddings[i])}")')
-                cursor.execute(buf.getvalue())
-                conn.commit()
+            self.bulk_insert_embeddings(embeddings, metadata)  
         except Exception as e:
             log.warning("Failed to insert data into table: %s", e)
             raise e
@@ -197,16 +230,11 @@ class TiDB(VectorDB):
     ) -> Tuple[int, Optional[Exception]]:
         workers = 10
         # Avoid exceeding MAX_ALLOWED_PACKET (default=64MB)
-        max_batch_size = 64 * 1024 * 1024 // 24 // self.dim
-        batch_size = len(embeddings) // workers
-        if batch_size > max_batch_size:
-            batch_size = max_batch_size
+        batch_size = 100
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
             futures = []
             for i in range(0, len(embeddings), batch_size):
-                offset = i
-                size = min(batch_size, len(embeddings) - i)
-                future = executor.submit(self._insert_embeddings_serial, embeddings, metadata, offset, size)
+                future = executor.submit(self._insert_embeddings_serial, embeddings, metadata)
                 futures.append(future)
             done, pending = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_EXCEPTION)
             executor.shutdown(wait=False)
@@ -215,7 +243,8 @@ class TiDB(VectorDB):
             for future in pending:
                 future.cancel()
         return len(metadata), None
-
+    
+    # Not implemented filter
     def search_embedding(
         self,
         query: list[float],

@@ -10,205 +10,139 @@ where = ["."]
 include = ["vectordb_bench", "vectordb_bench.cli"]
 
 [project]
-name = "vectordb-bench"
-authors = [
-  {name="XuanYang-cn", email="xuan.yang@zilliz.com"},
-]
-description = "VectorDBBench is not just an offering of benchmark results for mainstream vector databases and cloud services, it's your go-to tool for the ultimate performance and cost-effectiveness comparison. Designed with ease-of-use in mind, VectorDBBench is devised to help users, even non-professionals, reproduce results or test new systems, making the hunt for the optimal choice amongst a plethora of cloud services and open-source vector databases a breeze."
-
+name = "vectordbbench-uv"
+version = "0.1.0"
+description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+requires-python = ">=3.12"
 dependencies = [
-    "click",
-    "pytz",
-    "streamlit-autorefresh",
-    "streamlit!=1.34.0",
-    "streamlit_extras",
-    "tqdm",
-    "s3fs",
-    "oss2",
-    "psutil",
-    "polars",
-    "plotly",
-    "environs<14.1.0",
-    "pydantic<v2",
-    "scikit-learn",
-    "pymilvus", # with pandas, numpy, ujson
-]
-dynamic = ["version"]
-
-[project.optional-dependencies]
-test = [
-    "black",
-    "ruff",
-    "pytest",
-]
-
-all = [
-    "grpcio==1.53.0", # for qdrant-client and pymilvus
-    "grpcio-tools==1.53.0", # for qdrant-client and pymilvus
-    "qdrant-client",
-    "pinecone-client",
-    "weaviate-client",
-    "elasticsearch",
-    "sqlalchemy",
-    "redis",
-    "chromadb",
-    "pgvector",
-    "psycopg",
-    "psycopg-binary",
-    "pgvecto_rs[psycopg3]>=0.2.2",
-    "opensearch-dsl",
-    "opensearch-py",
-    "memorydb",
-    "alibabacloud_ha3engine_vector",
-    "alibabacloud_searchengine20211025",
-    "mariadb",
-    "PyMySQL",
-]
-
-qdrant          = [ "qdrant-client" ]
-pinecone        = [ "pinecone-client" ]
-weaviate        = [ "weaviate-client" ]
-elastic         = [ "elasticsearch" ]
-# For elastic and aliyun_elasticsearch
-
-pgvector        = [ "psycopg", "psycopg-binary", "pgvector" ]
-# for pgvector, pgvectorscale, pgdiskann, and, alloydb
-
-pgvecto_rs      = [ "pgvecto_rs[psycopg3]>=0.2.2" ]
-redis           = [ "redis" ]
-memorydb        = [ "memorydb" ]
-chromadb        = [ "chromadb" ]
-opensearch      = [ "opensearch-py" ]
-aliyun_opensearch = [ "alibabacloud_ha3engine_vector", "alibabacloud_searchengine20211025"]
-mongodb         = [ "pymongo" ]
-mariadb         = [ "mariadb" ]
-tidb            = [ "PyMySQL" ]
-
-[project.urls]
-"repository" = "https://github.com/zilliztech/VectorDBBench"
-
-[project.scripts]
-init_bench = "vectordb_bench.__main__:main"
-vectordbbench = "vectordb_bench.cli.vectordbbench:cli"
-
-[tool.setuptools_scm]
-
-[tool.black]
-line-length = 120
-target-version = ['py311']
-include = '\.pyi?$'
-
-[tool.ruff]
-lint.select = [
-    "E",
-    "F",
-    "C90",
-    "I",
-    "N",
-    "B", "C", "G",
-    "A",
-    "ANN001",
-    "S", "T", "W", "ARG", "BLE", "COM", "DJ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"
-]
-lint.ignore = [
-    "BLE001", # blind-except (BLE001)
-    "SLF001", # SLF001 Private member accessed [E]
-    "TRY003", # [ruff] TRY003 Avoid specifying long messages outside the exception class [E]
-    "FBT001", "FBT002", "FBT003",
-    "G004", # [ruff] G004 Logging statement uses f-string [E]
-    "UP031",
-    "RUF012",
-    "EM101",
-    "N805",
-    "ARG002",
-    "ARG003",
-    "PIE796", # https://github.com/zilliztech/VectorDBBench/issues/438
-    "INP001", # TODO
-    "TID252", # TODO
-    "N801", "N802", "N815",
-    "S101", "S108", "S603", "S311",
-    "PLR2004",
-    "RUF017",
-    "C416",
-    "PLW0603",
-    "COM812",
-]
-
-# Allow autofix for all enabled rules (when `--fix`) is provided.
-lint.fixable = [
-    "A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W",
-    "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT",
-    "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH",
-    "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP",
-    "YTT",
-]
-lint.unfixable = []
-
-show-fixes = true
-
-# Exclude a variety of commonly ignored directories.
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
-    "grpc_gen",
-    "__pycache__",
-    "frontend", # TODO
-    "tests",
-]
-
-# Same as Black.
-line-length = 120
-
-# Allow unused variables when underscore-prefixed.
-lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
-# Assume Python 3.11
-target-version = "py311"
-
-[tool.ruff.lint.mccabe]
-# Unlike Flake8, default to a complexity level of 10.
-max-complexity = 18
-
-[tool.ruff.lint.pycodestyle]
-max-line-length = 120
-max-doc-length = 120
-
-[tool.ruff.lint.pylint]
-max-args = 20
-max-branches = 15
-
-[tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = [
-    # "format",
-    # "next",
-    # "object", # TODO
-    # "id",
-    # "dict", # TODO
-    # "filter",
+    "aiobotocore==2.21.1",
+    "aiohappyeyeballs==2.4.8",
+    "aiohttp==3.11.13",
+    "aioitertools==0.12.0",
+    "aiosignal==1.3.2",
+    "aliyun-python-sdk-core==2.16.0",
+    "aliyun-python-sdk-kms==2.16.5",
+    "altair==5.5.0",
+    "anyio==4.8.0",
+    "attrs==25.1.0",
+    "beautifulsoup4==4.13.3",
+    "black==25.1.0",
+    "blinker==1.9.0",
+    "botocore==1.37.1",
+    "cachetools==5.5.2",
+    "certifi==2025.1.31",
+    "cffi==1.17.1",
+    "charset-normalizer==3.4.1",
+    "click==8.1.8",
+    "contourpy==1.3.1",
+    "crcmod==1.7",
+    "cryptography==44.0.2",
+    "cycler==0.12.1",
+    "entrypoints==0.4",
+    "environs==14.0.0",
+    "faker==36.1.1",
+    "favicon==0.7.0",
+    "fonttools==4.56.0",
+    "frozenlist==1.5.0",
+    "fsspec==2025.2.0",
+    "gitdb==4.0.12",
+    "gitpython==3.1.44",
+    "grpcio==1.67.1",
+    "grpcio-tools==1.67.1",
+    "h11==0.14.0",
+    "h2==4.2.0",
+    "hpack==4.1.0",
+    "htbuilder==0.9.0",
+    "httpcore==1.0.7",
+    "httpx==0.28.1",
+    "hyperframe==6.1.0",
+    "idna==3.10",
+    "iniconfig==2.0.0",
+    "jinja2==3.1.5",
+    "jmespath==0.10.0",
+    "joblib==1.4.2",
+    "jsonschema==4.23.0",
+    "jsonschema-specifications==2024.10.1",
+    "kiwisolver==1.4.8",
+    "lxml==5.3.1",
+    "markdown==3.7",
+    "markdownlit==0.0.7",
+    "markupsafe==3.0.2",
+    "marshmallow==3.26.1",
+    "matplotlib==3.10.1",
+    "milvus-lite==2.4.11",
+    "multidict==6.1.0",
+    "mypy-extensions==1.0.0",
+    "mysql-connector-python==9.2.0",
+    "mysqlclient==2.2.7",
+    "narwhals==1.29.0",
+    "numpy==2.2.3",
+    "oss2==2.19.1",
+    "packaging==24.2",
+    "pandas==2.2.3",
+    "pathspec==0.12.1",
+    "pillow==11.1.0",
+    "platformdirs==4.3.6",
+    "plotly==6.0.0",
+    "pluggy==1.5.0",
+    "polars==1.24.0",
+    "portalocker==2.10.1",
+    "prometheus-client==0.21.1",
+    "propcache==0.3.0",
+    "protobuf==5.29.3",
+    "psutil==7.0.0",
+    "pyarrow==19.0.1",
+    "pycparser==2.22",
+    "pycryptodome==3.21.0",
+    "pydantic==1.10.21",
+    "pydeck==0.9.1",
+    "pymdown-extensions==10.14.3",
+    "pymilvus==2.5.4",
+    "pymysql==1.1.1",
+    "pyparsing==3.2.1",
+    "pytest==8.3.5",
+    "python-dateutil==2.9.0.post0",
+    "python-dotenv==1.0.1",
+    "pytz==2025.1",
+    "pyyaml==6.0.2",
+    "qdrant-client==1.13.2",
+    "referencing==0.36.2",
+    "requests==2.32.3",
+    "rpds-py==0.23.1",
+    "ruff==0.9.10",
+    "s3fs==2025.2.0",
+    "scikit-learn==1.6.1",
+    "scipy==1.15.2",
+    "setuptools==75.8.2",
+    "six==1.17.0",
+    "smmap==5.0.2",
+    "sniffio==1.3.1",
+    "soupsieve==2.6",
+    "st-annotated-text==4.0.2",
+    "st-theme==1.2.3",
+    "streamlit==1.43.0",
+    "streamlit-autorefresh==1.0.1",
+    "streamlit-camera-input-live==0.2.0",
+    "streamlit-card==1.0.2",
+    "streamlit-embedcode==0.1.2",
+    "streamlit-extras==0.5.5",
+    "streamlit-faker==0.0.3",
+    "streamlit-image-coordinates==0.1.9",
+    "streamlit-keyup==0.3.0",
+    "streamlit-toggle-switch==1.0.2",
+    "streamlit-vertical-slider==2.5.5",
+    "tenacity==9.0.0",
+    "threadpoolctl==3.5.0",
+    "toml==0.10.2",
+    "tornado==6.4.2",
+    "tqdm==4.67.1",
+    "typing-extensions==4.12.2",
+    "tzdata==2025.1",
+    "ujson==5.10.0",
+    "urllib3==2.3.0",
+    "validators==0.34.0",
+    "wheel==0.45.1",
+    "wrapt==1.17.2",
+    "yarl==1.18.3",
 ]
