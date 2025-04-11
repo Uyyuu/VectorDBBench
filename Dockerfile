@@ -12,7 +12,7 @@ COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project --no-dev
+    uv sync --frozen --no-install-project --no-dev --compile-bytecode
 
 COPY vectordb_bench ./vectordb_bench
 
@@ -27,13 +27,10 @@ COPY --from=builder /app/.venv .venv
 
 # builder ステージから実行に必要なアプリケーションコードのみをコピー
 COPY --from=builder /app/vectordb_bench ./vectordb_bench
-# もしルートに設定ファイルなどが必要な場合は、それらも明示的にコピー
-# 例: COPY --from=builder /app/config.yaml ./config.yaml
 
 # PATH を設定して .venv 内の実行ファイルを使えるようにする
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app"
 
 EXPOSE 8501
-# エントリーポイントは変更なし
 ENTRYPOINT ["uv", "run", "python", "-m", "vectordb_bench"]
