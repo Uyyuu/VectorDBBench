@@ -980,20 +980,6 @@ wheels = [
 ]
 
 [[package]]
-name = "milvus-lite"
-version = "2.4.11"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "tqdm" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/85/42/6f4706066ec3251d5a3d42f7fc2bbb02deffa518e40ec63d9abdee58964b/milvus_lite-2.4.11-py3-none-macosx_10_9_x86_64.whl", hash = "sha256:9e563ae0dca1b41bfd76b90f06b2bcc474460fe4eba142c9bab18d2747ff843b", size = 19841144 },
-    { url = "https://files.pythonhosted.org/packages/c9/69/eabed32162362ba460d81b5c26c6554c2ffef9427fc5d440aa74fbe675dc/milvus_lite-2.4.11-py3-none-macosx_11_0_arm64.whl", hash = "sha256:d21472bd24eb327542817829ce7cb51878318e6173c4d62353c77421aecf98d6", size = 16872814 },
-    { url = "https://files.pythonhosted.org/packages/ed/85/feb5ef0d92ab4b62c20a5a91fdfc8515f1038d9947a41f5e8ba357724c28/milvus_lite-2.4.11-py3-none-manylinux2014_aarch64.whl", hash = "sha256:8e6ef27f7f84976f9fd0047b675ede746db2e0cc581c44a916ac9e71e0cef05d", size = 36006762 },
-    { url = "https://files.pythonhosted.org/packages/8d/c2/b294a7699ef097d7b0ab89f95f34fb0710726f12d7da912734e18c2558eb/milvus_lite-2.4.11-py3-none-manylinux2014_x86_64.whl", hash = "sha256:551f56b49fcfbb330b658b4a3c56ed29ba9b692ec201edd1f2dade7f5e39957d", size = 45177882 },
-]
-
-[[package]]
 name = "multidict"
 version = "6.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1459,24 +1445,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7c/44/e6de2fdc880ad0ec7547ca2e087212be815efbc9a425a8d5ba9ede602cbb/pymdown_extensions-10.14.3.tar.gz", hash = "sha256:41e576ce3f5d650be59e900e4ceff231e0aed2a88cf30acaee41e02f063a061b", size = 846846 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/eb/f5/b9e2a42aa8f9e34d52d66de87941ecd236570c7ed2e87775ed23bbe4e224/pymdown_extensions-10.14.3-py3-none-any.whl", hash = "sha256:05e0bee73d64b9c71a4ae17c72abc2f700e8bc8403755a00580b49a4e9f189e9", size = 264467 },
-]
-
-[[package]]
-name = "pymilvus"
-version = "2.5.4"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "grpcio" },
-    { name = "milvus-lite", marker = "sys_platform != 'win32'" },
-    { name = "pandas" },
-    { name = "protobuf" },
-    { name = "python-dotenv" },
-    { name = "setuptools" },
-    { name = "ujson" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f7/64/b00289d52e33a6ebc645cf0d60a7a0a3ce4db74648ceb1f55d776971e34d/pymilvus-2.5.4.tar.gz", hash = "sha256:611732428ff669d57ded3d1f823bdeb10febf233d0251cce8498b287e5a10ce8", size = 1250160 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/e6/1ba3cae7c723ecf9ede7a30c78824953afc2fe4bab5fce8ec5d8e233f541/pymilvus-2.5.4-py3-none-any.whl", hash = "sha256:3f7ddaeae0c8f63554b8e316b73f265d022e05a457d47c366ce47293434a3aea", size = 222399 },
 ]
 
 [[package]]
@@ -2138,7 +2106,6 @@ dependencies = [
     { name = "anyio" },
     { name = "attrs" },
     { name = "beautifulsoup4" },
-    { name = "black" },
     { name = "blinker" },
     { name = "botocore" },
     { name = "cachetools" },
@@ -2158,9 +2125,7 @@ dependencies = [
     { name = "frozenlist" },
     { name = "fsspec" },
     { name = "gitdb" },
-    { name = "gitpython" },
     { name = "grpcio" },
-    { name = "grpcio-tools" },
     { name = "h11" },
     { name = "h2" },
     { name = "hpack" },
@@ -2183,7 +2148,6 @@ dependencies = [
     { name = "marshmallow" },
     { name = "matplotlib" },
     { name = "multidict" },
-    { name = "mypy-extensions" },
     { name = "mysqlclient" },
     { name = "narwhals" },
     { name = "numpy" },
@@ -2207,10 +2171,8 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydeck" },
     { name = "pymdown-extensions" },
-    { name = "pymilvus" },
     { name = "pymysql" },
     { name = "pyparsing" },
-    { name = "pytest" },
     { name = "python-dateutil" },
     { name = "python-dotenv" },
     { name = "pytz" },
@@ -2218,7 +2180,6 @@ dependencies = [
     { name = "referencing" },
     { name = "requests" },
     { name = "rpds-py" },
-    { name = "ruff" },
     { name = "s3fs" },
     { name = "scikit-learn" },
     { name = "scipy" },
@@ -2235,7 +2196,6 @@ dependencies = [
     { name = "streamlit-card" },
     { name = "streamlit-embedcode" },
     { name = "streamlit-extras" },
-    { name = "streamlit-faker" },
     { name = "streamlit-image-coordinates" },
     { name = "streamlit-keyup" },
     { name = "streamlit-toggle-switch" },
@@ -2255,6 +2215,17 @@ dependencies = [
     { name = "yarl" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "black" },
+    { name = "gitpython" },
+    { name = "grpcio-tools" },
+    { name = "mypy-extensions" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "streamlit-faker" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "aiobotocore", specifier = "==2.21.1" },
@@ -2266,7 +2237,6 @@ requires-dist = [
     { name = "anyio", specifier = "==4.8.0" },
     { name = "attrs", specifier = "==25.1.0" },
     { name = "beautifulsoup4", specifier = "==4.13.3" },
-    { name = "black", specifier = "==25.1.0" },
     { name = "blinker", specifier = "==1.9.0" },
     { name = "botocore", specifier = "==1.37.1" },
     { name = "cachetools", specifier = "==5.5.2" },
@@ -2286,9 +2256,7 @@ requires-dist = [
     { name = "frozenlist", specifier = "==1.5.0" },
     { name = "fsspec", specifier = "==2025.2.0" },
     { name = "gitdb", specifier = "==4.0.12" },
-    { name = "gitpython", specifier = "==3.1.44" },
     { name = "grpcio", specifier = "==1.67.1" },
-    { name = "grpcio-tools", specifier = "==1.67.1" },
     { name = "h11", specifier = "==0.14.0" },
     { name = "h2", specifier = "==4.2.0" },
     { name = "hpack", specifier = "==4.1.0" },
@@ -2311,7 +2279,6 @@ requires-dist = [
     { name = "marshmallow", specifier = "==3.26.1" },
     { name = "matplotlib", specifier = "==3.10.1" },
     { name = "multidict", specifier = "==6.1.0" },
-    { name = "mypy-extensions", specifier = "==1.0.0" },
     { name = "mysqlclient", specifier = "==2.2.7" },
     { name = "narwhals", specifier = "==1.29.0" },
     { name = "numpy", specifier = "==2.2.3" },
@@ -2335,10 +2302,8 @@ requires-dist = [
     { name = "pydantic", specifier = "==1.10.21" },
     { name = "pydeck", specifier = "==0.9.1" },
     { name = "pymdown-extensions", specifier = "==10.14.3" },
-    { name = "pymilvus", specifier = "==2.5.4" },
     { name = "pymysql", specifier = "==1.1.1" },
     { name = "pyparsing", specifier = "==3.2.1" },
-    { name = "pytest", specifier = "==8.3.5" },
     { name = "python-dateutil", specifier = "==2.9.0.post0" },
     { name = "python-dotenv", specifier = "==1.0.1" },
     { name = "pytz", specifier = "==2025.1" },
@@ -2346,7 +2311,6 @@ requires-dist = [
     { name = "referencing", specifier = "==0.36.2" },
     { name = "requests", specifier = "==2.32.3" },
     { name = "rpds-py", specifier = "==0.23.1" },
-    { name = "ruff", specifier = "==0.9.10" },
     { name = "s3fs", specifier = "==2025.2.0" },
     { name = "scikit-learn", specifier = "==1.6.1" },
     { name = "scipy", specifier = "==1.15.2" },
@@ -2363,7 +2327,6 @@ requires-dist = [
     { name = "streamlit-card", specifier = "==1.0.2" },
     { name = "streamlit-embedcode", specifier = "==0.1.2" },
     { name = "streamlit-extras", specifier = "==0.5.5" },
-    { name = "streamlit-faker", specifier = "==0.0.3" },
     { name = "streamlit-image-coordinates", specifier = "==0.1.9" },
     { name = "streamlit-keyup", specifier = "==0.3.0" },
     { name = "streamlit-toggle-switch", specifier = "==1.0.2" },
@@ -2381,6 +2344,17 @@ requires-dist = [
     { name = "wheel", specifier = "==0.45.1" },
     { name = "wrapt", specifier = "==1.17.2" },
     { name = "yarl", specifier = "==1.18.3" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "black", specifier = "==25.1.0" },
+    { name = "gitpython", specifier = "==3.1.44" },
+    { name = "grpcio-tools", specifier = "==1.67.1" },
+    { name = "mypy-extensions", specifier = "==1.0.0" },
+    { name = "pytest", specifier = "==8.3.5" },
+    { name = "ruff", specifier = "==0.9.10" },
+    { name = "streamlit-faker", specifier = "==0.0.3" },
 ]
 
 [[package]]
