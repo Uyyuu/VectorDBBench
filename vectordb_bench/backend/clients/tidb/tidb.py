@@ -30,6 +30,8 @@ class TiDB(VectorDB):
         self.case_config = db_case_config
         self.table_name = collection_name
         self.dim = dim
+        self._vector_field = "embedding"
+        self._index_name = "tidb_vector_index"
         self.conn = None  # To be inited by init()
         self.cursor = None  # To be inited by init()
 
@@ -76,7 +78,7 @@ class TiDB(VectorDB):
                         uuid BINARY(16) PRIMARY KEY,
                         id BIGINT NOT NULL,
                         embedding VECTOR({self.dim}) NOT NULL,
-                        VECTOR INDEX (({index_param["metric_fn"]}(embedding)))
+                        VECTOR INDEX {self._index_name} (({index_param["metric_fn"]}(embedding)))
                     );
                     """
                 )
@@ -84,11 +86,38 @@ class TiDB(VectorDB):
         except Exception as e:
             log.warning("Failed to create table: %s error: %s", self.table_name, e)
             raise e
+    
+    def _create_index(self):
+        assert self.conn is not None, "Connection is not initialized"
+        assert self.cursor is not None, "Cursor is not initialized"
+
+        self.cursor.execute(f"ALTER TABLE `{self.table_name}` SET TIFLASH REPLICA 1;")
+        self.cursor.execute(f"CREATE VECTOR INDEX `{self._index_name}` ON `{self.table_name}` ((VEC_COSINE_DISTANCE({self._vector_field}))) USING HNSW;")
+        self.conn.commit()
+        log.info(f"Index `{self._index_name}` created on `{self._vector_field}`.")
+
+    def _drop_index(self):
+        assert self.conn is not None, "Connection is not initialized"
+        assert self.cursor is not None, "Cursor is not initialized"
+
+        drop_index_sql = f"DROP INDEX IF EXISTS `{self._index_name}` ON `{self.table_name}`"
+        self.cursor.execute(drop_index_sql)
+        self.conn.commit()
+        log.info(f"Index `{self._index_name}` dropped from table `{self.table_name}`.")
 
     def ready_to_load(self) -> bool:
         pass
 
     def optimize(self, data_size: int | None = None) -> None:
+        assert self.conn is not None, "Connection is not initialized"
+        assert self.cursor is not None, "Cursor is not initialized"
+
+        log.info("Starting TiFlash replica optimization...")
+        log.info("Dropping existing index...")
+        self._drop_index()
+        self._create_index()
+        
+        log.info("Waiting TiFlash replica to catch up...")
         while True:
             progress = self._optimize_check_tiflash_replica_progress()
             if progress != 1:
@@ -230,12 +259,24 @@ class TiDB(VectorDB):
     ) -> Tuple[int, Optional[Exception]]:
         workers = 10
         # Avoid exceeding MAX_ALLOWED_PACKET (default=64MB)
-        batch_size = 100
+        total_len = len(embeddings)
+        if total_len == 0:
+            return 0, None
+
+        # バッチサイズの計算 (total_len < workers の場合や割り切れない場合を考慮)
+        batch_size = max(1, (total_len + workers - 1) // workers) # 最低1は保証
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
             futures = []
-            for i in range(0, len(embeddings), batch_size):
-                future = executor.submit(self._insert_embeddings_serial, embeddings, metadata)
-                futures.append(future)
+            for i in range(0, total_len, batch_size):
+                # ここでデータをスライスする
+                batch_embeddings = embeddings[i:min(i + batch_size, total_len)]
+                batch_metadata = metadata[i:min(i + batch_size, total_len)]
+
+                # スライスしたバッチデータのみを _insert_embeddings_serial に渡す
+                if batch_embeddings: # 空のバッチは送らない
+                    future = executor.submit(self._insert_embeddings_serial, batch_embeddings, batch_metadata)
+                    futures.append(future)
+
             done, pending = concurrent.futures.wait(futures, return_when=concurrent.futures.FIRST_EXCEPTION)
             executor.shutdown(wait=False)
             for future in done:
