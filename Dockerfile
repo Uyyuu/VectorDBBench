@@ -1,6 +1,9 @@
+# ベースイメージのバージョンを定義
+ARG UV_VERSION=0.6.14
+ARG PYTHON_VERSION=3.12
+
 # --- Builder Stage ---
-# ベースイメージは slim を使用しており、適切です
-FROM ghcr.io/astral-sh/uv:0.6.14-python3.12-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:${UV_VERSION}-python${PYTHON_VERSION}-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -18,7 +21,7 @@ COPY vectordb_bench ./vectordb_bench
 
 
 # --- Runner Stage ---
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS runner
+FROM ghcr.io/astral-sh/uv:${UV_VERSION}-python${PYTHON_VERSION}-bookworm-slim AS runner
 
 WORKDIR /app
 
